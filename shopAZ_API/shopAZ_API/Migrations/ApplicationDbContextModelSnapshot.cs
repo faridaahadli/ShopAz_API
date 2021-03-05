@@ -227,7 +227,7 @@ namespace shopAZ_API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRolePivot");
+                    b.ToTable("UserRoles");
                 });
 
             modelBuilder.Entity("shopAZ_API.DBModels.Basket", b =>

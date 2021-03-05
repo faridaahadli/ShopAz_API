@@ -18,5 +18,6 @@ namespace shopAZ_API.DBModels
         public DbSet<Order> Orders { get; set; }
         public DbSet<ProductsOfOrder> ProductsOfOrders { get; set; }
         public DbSet<ProductInfoLang> ProductInfos { get; set; }
+        public DbSet<UserRolePivot> UserRoles { get; set; }
     }
 }
