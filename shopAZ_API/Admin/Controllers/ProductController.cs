@@ -27,9 +27,12 @@ namespace Admin.Controllers
         }
         // GET: api/<ProductController>
         [HttpGet]
-        public IEnumerable<Product> Get()
+        public IActionResult Get()
         {
-            return _context.Products.ToList();
+            var products = _mapper
+                .Map<IEnumerable<Product>, IEnumerable<ProductCreateViewModel>>(_context.Products
+                .Include(p=>p.ProductInfos));
+            return Ok(products);
         }
 
         // GET api/<ProductController>/5

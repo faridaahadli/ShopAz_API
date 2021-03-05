@@ -1,4 +1,6 @@
-﻿using System;
+﻿using shopAZ_API.DBModels;
+using shopAZ_API.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

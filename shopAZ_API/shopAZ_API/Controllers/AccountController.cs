@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using shopAZ_API.DBModels;
-using shopAZ_API.Interfaces;
 using shopAZ_API.Models;
 using shopAZ_API.Validators;
 using shopAZ_API.ViewModels;
@@ -67,29 +66,31 @@ namespace shopAZ_API.Controllers
             {
                 return BadRequest();
             }
-            var user = await _context.Users
+            var user = await _context.Users?
                 .FirstOrDefaultAsync(p => p.Username == model.Username 
-                && Crypto.VerifyHashedPassword(p.Password, model.Password));
+                && p.Password== "AQAAAAEAACcQAAAAEEK+BdU+QbEH1ObS2zdKiG2PC1Zz8V0BzZOMWDrZKwgz6ktVH5Si0Wn67QdIGGpFAw=="); //"AQAAAAEAACcQAAAAEEK+BdU+QbEH1ObS2zdKiG2PC1Zz8V0BzZOMWDrZKwgz6ktVH5Si0Wn67QdIGGpFAw=="
             if (user == null)
                 return Unauthorized();
             var userprofile = new UserProfile();
             userprofile.Username = user.Username;
-            userprofile.Token = CreateToken(user);
-            return Ok();
+            userprofile.Token = CreateToken(user); 
+            return Ok(userprofile.Token);
         }
 
         public static string CreateToken(User user)
         {
             var claims = new List<Claim>()
             {
-                new Claim(JwtRegisteredClaimNames.NameId,user.Username)
+                new Claim("userId",user.Id.ToString())
             };
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("secret key"));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("this is my custom Secret key for authnetication"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
             var tokenDescripter = new SecurityTokenDescriptor()
             {
+                
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.Now.AddDays(7),
+                //Issuer = "http://localhost:52870",
                 SigningCredentials = creds
             };
             var tokenHandler = new JwtSecurityTokenHandler();
