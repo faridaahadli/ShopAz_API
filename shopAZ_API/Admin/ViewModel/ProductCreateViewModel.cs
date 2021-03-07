@@ -12,7 +12,7 @@ namespace Admin.ViewModel
         public int StockCount { get; set; }
         public string StockCode { get; set; }
         public decimal? Price { get; set; }
-        public string? Seller { get; set; }
+        public string Seller { get; set; }
         public float Discount { get; set; } = 0;
         public bool? IsMoney { get; set; }
         public DateTime? StartDate { get; set; }

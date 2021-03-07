@@ -15,6 +15,7 @@ using Microsoft.OpenApi.Models;
 using shopAZ_API.DBModels;
 using shopAZ_API.Validators;
 using shopAZ_API.ViewModels;
+using Stripe;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace shopAZ_API
         {
             services.AddControllers();
             services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")),ServiceLifetime.Transient);
             services.AddMvc()
                 .AddFluentValidation();
             services.AddTransient<IValidator<RegisterViewModel>, RegisterValidator>();
@@ -93,17 +94,20 @@ namespace shopAZ_API
                         IssuerSigningKey = key
                     };
                 });
+            //services.AddAuthorization();
             services.AddAutoMapper(typeof(Startup));
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            StripeConfiguration.SetApiKey(Configuration.GetSection("Stripe")["SecretKey"]);
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();

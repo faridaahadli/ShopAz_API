@@ -12,7 +12,7 @@ namespace shopAZ_API.Validators
         public RegisterValidator()
         {
             RuleFor(x => x.Username).NotEmpty().WithMessage("This field is required")
-            .EmailAddress().WithMessage("Email Adress is not valid")
+            .EmailAddress().WithMessage("Email Address is not valid")
             .MaximumLength(50);
             RuleFor(x => x.FirstName).NotEmpty()
             .WithMessage("This field is required").MaximumLength(50);

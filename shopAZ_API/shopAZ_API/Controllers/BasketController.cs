@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using shopAZ_API.DBModels;
+using shopAZ_API.Validators;
 using shopAZ_API.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace shopAZ_API.Controllers
         }
         // GET: api/<BasketController>
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public IActionResult Get()
         {
             //var userId = User.Claims.First(p => p.Type == "userId").Value;
             //int id = Convert.ToInt32(userId);
@@ -40,29 +41,59 @@ namespace shopAZ_API.Controllers
             return Ok(baskets);
         }
 
-        // GET api/<BasketController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
         // POST api/<BasketController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<IActionResult> Post(BasketViewModel model)
         {
+            BasketValidator validator = new BasketValidator();
+            var result = validator.Validate(model);
+            if (!result.IsValid)
+                return BadRequest("Model is not valid");
+            var product =  _context.Products?.Include(p => p.ProductInfos)
+                .FirstOrDefault(p => p.Id == model.ProductId);
+            if (product == null)
+                return NotFound();
+            var basket = _mapper.Map<Basket>(model);
+            //Use current user id
+            basket.UserId = 2;
+             _context.Baskets.Add(basket);
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
         // PUT api/<BasketController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut]
+        public async Task<IActionResult> Put(BasketViewModel model)
         {
+            BasketValidator validator = new BasketValidator();
+            var result = validator.Validate(model);
+            if (!result.IsValid)
+                return BadRequest("Model is not valid");
+            var basket = _context.Baskets?
+                .FirstOrDefault(p =>p.Id==model.Id);
+            if (basket == null)
+                return NotFound();
+            //Error with mapper
+            //basket = _mapper.Map<Basket>(model);
+            basket.ProductCount = model.ProductCount;
+            basket.ProductId = model.ProductId;
+            //basket.UserId = 2;
+            //_context.Baskets.Update(basket);
+            await _context.SaveChangesAsync();
+            return Ok(model);
         }
 
         // DELETE api/<BasketController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            var basket= _context.Baskets
+                .FirstOrDefault(p => p.Id == id);
+            if (basket == null)
+                return NotFound();
+            _context.Baskets.Remove(basket);
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
     }

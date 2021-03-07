@@ -73,7 +73,7 @@ namespace Admin.Controllers
 
         // PUT api/<ProductController>/5
         [HttpPut]
-        public IActionResult Put(ProductCreateViewModel model)
+        public async Task<IActionResult> Put(ProductCreateViewModel model)
         {
             ProductValidator validator = new ProductValidator();
             var result = validator.Validate(model);
@@ -86,6 +86,7 @@ namespace Admin.Controllers
                 return NotFound("Product doesn't exist");
             product = _mapper.Map<Product>(model);
             _context.Products.Update(product);
+            await _context.SaveChangesAsync();
             return Ok(product);
         }
 

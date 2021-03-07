@@ -7,6 +7,7 @@ namespace shopAZ_API.ViewModels
 {
     public class BasketViewModel
     {
+        public int Id { get; set; }
         public int ProductCount { get; set; }
         public int ProductId { get; set; }
     }

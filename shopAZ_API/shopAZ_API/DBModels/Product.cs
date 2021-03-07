@@ -12,7 +12,7 @@ namespace shopAZ_API.DBModels
         public string StockCode { get; set; }
         public decimal? Price { get; set; }
         public string? Seller { get; set; }
-        public int? ReserveCount { get; set; }
+        public int? ReserveCount { get; set; } = 0;
         public float Discount { get; set; } = 0;
         public bool? IsMoney { get; set; }
         public DateTime? StartDate { get; set; }

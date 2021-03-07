@@ -59,7 +59,7 @@ namespace shopAZ_API.Migrations
                     b.ToTable("Langs");
                 });
 
-            modelBuilder.Entity("shopAZ_API.DBModels.Order", b =>
+            modelBuilder.Entity("shopAZ_API.DBModels.ProdOrder", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -72,7 +72,12 @@ namespace shopAZ_API.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Orders");
                 });
@@ -194,6 +199,9 @@ namespace shopAZ_API.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("LastName")
                         .HasColumnType("text");
 
@@ -249,6 +257,17 @@ namespace shopAZ_API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("shopAZ_API.DBModels.ProdOrder", b =>
+                {
+                    b.HasOne("shopAZ_API.DBModels.User", "User")
+                        .WithMany("Orders")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("shopAZ_API.DBModels.ProductInfoLang", b =>
                 {
                     b.HasOne("shopAZ_API.DBModels.Lang", "Lang")
@@ -270,7 +289,7 @@ namespace shopAZ_API.Migrations
 
             modelBuilder.Entity("shopAZ_API.DBModels.ProductsOfOrder", b =>
                 {
-                    b.HasOne("shopAZ_API.DBModels.Order", "Order")
+                    b.HasOne("shopAZ_API.DBModels.ProdOrder", "Order")
                         .WithMany("Products")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -311,7 +330,7 @@ namespace shopAZ_API.Migrations
                     b.Navigation("ProductInfos");
                 });
 
-            modelBuilder.Entity("shopAZ_API.DBModels.Order", b =>
+            modelBuilder.Entity("shopAZ_API.DBModels.ProdOrder", b =>
                 {
                     b.Navigation("Products");
                 });
@@ -333,6 +352,8 @@ namespace shopAZ_API.Migrations
             modelBuilder.Entity("shopAZ_API.DBModels.User", b =>
                 {
                     b.Navigation("Baskets");
+
+                    b.Navigation("Orders");
 
                     b.Navigation("UserRolePivots");
                 });

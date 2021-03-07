@@ -14,6 +14,9 @@ namespace shopAZ_API.Mapper
         {
             CreateMap<BasketViewModel, Basket>();
             CreateMap<Basket,BasketViewModel>();
+            CreateMap<OrderViewModel, ProdOrder>();
+            CreateMap<PrdOfOrderViewModel, ProductsOfOrder>();
+            CreateMap<Basket,PrdOfOrderViewModel>();
         }
     }
 }

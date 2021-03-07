@@ -7,10 +7,10 @@ namespace shopAZ_API.Enums
 {
     public class OrderStatus
     {
-    enum Status
+    public enum Status
     {
-       pending,
-       accepted
+       pending=1,
+       arrived
     }
     }
 }

@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace shopAZ_API.DBModels
+namespace shopAZ_API.ViewModels
 {
-    public class Order
+    public class OrderViewModel
     {
-        public int Id { get; set; }
         public int Status { get; set; }
+        public int UserId { get; set; }
         public DateTime CreateDate { get; set; }
-        public virtual IEnumerable<ProductsOfOrder> Products { get; set; }
-
+        public IEnumerable<PrdOfOrderViewModel> Products { get; set; }
     }
 }

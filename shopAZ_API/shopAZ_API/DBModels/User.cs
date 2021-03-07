@@ -12,7 +12,9 @@ namespace shopAZ_API.DBModels
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Password { get; set; }
+        public bool IsDeleted { get; set; } = false;
         public virtual IEnumerable<UserRolePivot> UserRolePivots { get; set; }
         public virtual IEnumerable<Basket> Baskets { get; set; }
+        public virtual IEnumerable<ProdOrder> Orders { get; set; }
     }
 }
