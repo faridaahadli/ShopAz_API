@@ -18,6 +18,7 @@ namespace Admin.Mapper
             CreateMap<Product,ProductCreateViewModel>();
             CreateMap<ProductInfoLang,ProductInfoViewModel>();
             CreateMap<ProdOrder,SingleOrderViewModel>();
+            CreateMap<SingleOrderViewModel,ProdOrder> ();
             CreateMap<ProductsOfOrder,PrdOfOrderViewModel>();
             //Shop_AZAPI project
             CreateMap<BasketViewModel, Basket>();

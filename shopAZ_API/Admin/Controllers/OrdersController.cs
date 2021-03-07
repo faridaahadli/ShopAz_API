@@ -32,6 +32,7 @@ namespace Admin.Controllers
         public IActionResult Get()
         {
             var list =_context.Orders?.Include(p=>p.Products)
+                .ThenInclude(p=>p.Product)
                 .ToList();
              
             return Ok(list);
@@ -52,22 +53,27 @@ namespace Admin.Controllers
             return Ok(viewOrder);
         }
 
-        // POST api/<OrdersController>
-        [HttpPost]
-        public void Post()
-        {
-        }
-
         // PUT api/<OrdersController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut]
+        public async Task<IActionResult>Put(UpdateOrder model)
         {
+            var order = _context.Orders?
+                .Include(p => p.Products)
+                .ThenInclude(p => p.Product)
+                .FirstOrDefault(p => p.Id == model.Id);
+            order.Status = model.Status;   //Status enum : 1-pending, 2-arrived
+            //await _context.SaveChangesAsync();
+            foreach (var item in order.Products)
+            {
+                var updatePrd = _context.Products
+                    .FirstOrDefault(p => p.Id == item.Product.Id);
+                updatePrd.ReserveCount -= item.ProductCount;
+                updatePrd.StockCount -= item.ProductCount;
+
+            }
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
-        // DELETE api/<OrdersController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
     }
 }
