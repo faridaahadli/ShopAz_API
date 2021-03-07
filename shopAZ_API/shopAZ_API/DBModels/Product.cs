@@ -11,10 +11,10 @@ namespace shopAZ_API.DBModels
         public int StockCount { get; set; }
         public string StockCode { get; set; }
         public decimal? Price { get; set; }
-        public string? Seller { get; set; }
+        public string Seller { get; set; }
         public int? ReserveCount { get; set; } = 0;
         public float Discount { get; set; } = 0;
-        public bool? IsMoney { get; set; }
+        public bool IsMoney { get; set; } = false;
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public virtual IEnumerable<ProductInfoLang> ProductInfos { get; set; }

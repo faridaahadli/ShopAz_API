@@ -31,21 +31,9 @@ namespace shopAZ_API.Controllers
             _context = context;
             _mapper = mapper;
         }
-        // GET: api/<OrderController>
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-        // GET api/<OrderController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
 
         // POST api/<OrderController>
+        //function for basket
         [HttpPost]
         public async Task<IActionResult> Post(CardData model)
         {
@@ -55,13 +43,20 @@ namespace shopAZ_API.Controllers
             var result = await validator.ValidateAsync(model);
             if (!result.IsValid)
                 return BadRequest(result.Errors);
-            decimal? amount;
+            decimal? amount=0;
             var basket = _context.Baskets
                  .Where(p => p.UserId == 2)
                  .Include(p => p.Product);
-            //stripe uses cent we multiply 100
-            
-            amount = basket.Sum(p => p.Product.Price * p.ProductCount)*100;
+
+            //stripe uses cent we multiply 100  
+           
+            foreach(var element in basket)
+            {
+
+                amount +=OrderAmount.GetTotal(element.Product.Discount,
+                    (float)element.Product.Price, element.ProductCount, element.Product.IsMoney);
+            }
+            amount *= 100;
             if (amount<50)
                 return BadRequest("Payment amount should be at least 50 cent");
             IPayment payment = new Payment();
@@ -76,8 +71,14 @@ namespace shopAZ_API.Controllers
             order.CreateDate = DateTime.Now;
             order.Status = (int)OrderStatus.Status.pending;
             order.UserId = 2;
-            order.Products = _mapper.Map<IEnumerable<Basket>, IEnumerable<PrdOfOrderViewModel>>(basket);
+            order.Products = _mapper.Map<IEnumerable<Basket>,IEnumerable<PrdOfOrderViewModel>>(basket);
             var dbOrder = _mapper.Map<ProdOrder>(order);
+            foreach(var prd in dbOrder.Products)
+            {
+                var search= rvdPrd.FirstOrDefault(p => p.Id == prd.ProductId);
+                prd.Discount = search.Discount;
+                prd.IsMoney = search.IsMoney;
+            }
             await _context.Orders.AddAsync(dbOrder);
             await _context.SaveChangesAsync();
             _context.Baskets.RemoveRange(basket);
@@ -91,22 +92,58 @@ namespace shopAZ_API.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
-      
-        // PUT api/<OrderController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+
+        //Function for buy one product
+        [HttpPost]
+        [Route("{id}/{count}")]
+        public async Task<IActionResult> Post(int id,CardData model, int count = 1)
         {
+            var rvdPrd = _context.Products.ToList();
+            CardValidator validator = new CardValidator();
+            var result = await validator.ValidateAsync(model);
+            if (!result.IsValid)
+                return BadRequest(result.Errors);
+            decimal? amount;
+            var product = rvdPrd.FirstOrDefault(p=>p.Id==id);
+            //stripe uses cent we multiply 100  
+            amount= OrderAmount.GetTotal(product.Discount,
+                   (float)product.Price, count, product.IsMoney);
+            amount *= 100;
+            if (amount < 50)
+                return BadRequest("Payment amount should be at least 50 cent");
+            IPayment payment = new Payment();
+            var success = payment.MakePayment(model, (long)amount);
+            if (!await success)
+            {
+                return BadRequest();
+            }
+
+            //Stripe has an Order class
+            var prdOfOrder = new PrdOfOrderViewModel();
+            var list = new List<PrdOfOrderViewModel>();
+            list.Add(prdOfOrder);
+            prdOfOrder.ProductId = product.Id;
+            prdOfOrder.ProductCount = count;
+            var order = new OrderViewModel();
+            order.CreateDate = DateTime.Now;
+            order.Status = (int)OrderStatus.Status.pending;
+            order.UserId = 2;
+            order.Products = list;
+            var dbOrder = _mapper.Map<ProdOrder>(order);
+            foreach (var prd in dbOrder.Products)
+            {
+                var search = rvdPrd.FirstOrDefault(p => p.Id == prd.ProductId);
+                prd.Discount = search.Discount;
+                prd.IsMoney = search.IsMoney;
+            }
+            await _context.Orders.AddAsync(dbOrder);
+            await _context.SaveChangesAsync();
+            int reserveCount = (int)product.ReserveCount;
+            reserveCount += count;
+            product.ReserveCount = reserveCount;
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
-        // DELETE api/<OrderController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
-
-        //public decimal getTotalCountBasket(int userId)
-        //{
-           
-        //}
     }
 }

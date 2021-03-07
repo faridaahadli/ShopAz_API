@@ -1,6 +1,7 @@
 ﻿using Admin.ViewModel;
 using AutoMapper;
 using shopAZ_API.DBModels;
+using shopAZ_API.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,15 @@ namespace Admin.Mapper
             CreateMap<ProductInfoViewModel,ProductInfoLang>();
             CreateMap<Product,ProductCreateViewModel>();
             CreateMap<ProductInfoLang,ProductInfoViewModel>();
+            CreateMap<ProdOrder,SingleOrderViewModel>();
+            CreateMap<ProductsOfOrder,PrdOfOrderViewModel>();
+            //Shop_AZAPI project
+            CreateMap<BasketViewModel, Basket>();
+            CreateMap<Basket, BasketViewModel>();
+            CreateMap<OrderViewModel, ProdOrder>();
+            CreateMap<ProdOrder,OrderViewModel>();
+            CreateMap<PrdOfOrderViewModel,ProductsOfOrder>();
+            CreateMap<Basket, PrdOfOrderViewModel>();
         }
     }
 }

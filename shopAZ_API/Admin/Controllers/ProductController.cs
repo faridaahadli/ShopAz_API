@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Admin.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/admin/Products")]
     [ApiController]
     public class ProductController : ControllerBase
     {
@@ -58,14 +58,6 @@ namespace Admin.Controllers
                 return BadRequest();
             }
             var product = _mapper.Map<Product>(model);
-            //product.Price = model.Price;
-            //product.StockCode = model.StockCode;
-            //product.StockCount = model.StockCount;
-            //product.Discount = model.Discount;
-            //product.IsMoney = model.IsMoney;
-            //product.StartDate = model.StartDate;
-            //product.EndDate = model.EndDate;
-            //product.Seller = model.Seller;
             await _context.Products.AddAsync(product);
             await _context.SaveChangesAsync();
             return Ok();
