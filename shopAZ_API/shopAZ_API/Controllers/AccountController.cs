@@ -2,6 +2,7 @@
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using shopAZ_API.DBModels;
 using shopAZ_API.Models;
@@ -24,10 +25,12 @@ namespace shopAZ_API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public AccountController(ApplicationDbContext context)
+        public AccountController(ApplicationDbContext context,IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
         
         //Register function for users
@@ -36,11 +39,16 @@ namespace shopAZ_API.Controllers
         {
             RegisterValidator validator = new RegisterValidator();
             ValidationResult result = validator.Validate(model);
-
+            bool chekname = await _context.Users.AnyAsync(p => p.Username.Equals(model.Username));
             if (!result.IsValid)
             {
-                return BadRequest();
+                return BadRequest(result.Errors);
             }
+            if (chekname)
+            {
+                return BadRequest("This email address already exist");
+            }
+           
             var user = new User();
             user.Username = model.Username;
             user.FirstName = model.FirstName;
@@ -57,6 +65,8 @@ namespace shopAZ_API.Controllers
         }
 
         [HttpPost("login")]
+        //Token: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyIiwibmJmIjoxNjE1MTYwMjk4LCJleHAiOjE2MTU3NjUwOTgsImlhdCI6MTYxNTE2MDI5OH0.x5BDep3_P46HhUH0cisSARCq5CGRMCjuDnIHngZAtD35SnaxvRyOYG7LRj0N0iXNw3b869E8jjbFY5aC9YG7jw
+
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             LoginValidator validator = new LoginValidator();
@@ -64,33 +74,36 @@ namespace shopAZ_API.Controllers
 
             if (!result.IsValid)
             {
-                return BadRequest();
+                return BadRequest(result.Errors);
             }
+            
             var user = await _context.Users?
-                .FirstOrDefaultAsync(p => p.Username == model.Username 
-                && p.Password== "AQAAAAEAACcQAAAAEEK+BdU+QbEH1ObS2zdKiG2PC1Zz8V0BzZOMWDrZKwgz6ktVH5Si0Wn67QdIGGpFAw=="); //"AQAAAAEAACcQAAAAEEK+BdU+QbEH1ObS2zdKiG2PC1Zz8V0BzZOMWDrZKwgz6ktVH5Si0Wn67QdIGGpFAw=="
+             .FirstOrDefaultAsync(p => p.Username == model.Username);
             if (user == null)
+                return Unauthorized();
+            bool check = Crypto.VerifyHashedPassword(user.Password, model.Password);
+            if (!check)
                 return Unauthorized();
             var userprofile = new UserProfile();
             userprofile.Username = user.Username;
-            userprofile.Token = CreateToken(user); 
+            userprofile.Token = CreateToken(user,_configuration); 
             return Ok(userprofile.Token);
         }
 
-        public static string CreateToken(User user)
+        public static string CreateToken(User user,IConfiguration config)
         {
             var claims = new List<Claim>()
             {
                 new Claim("userId",user.Id.ToString())
             };
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("this is my custom Secret key for authnetication"));
+            var key = new SymmetricSecurityKey(Encoding.UTF8
+                .GetBytes(config.GetSection("JWT")["key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
             var tokenDescripter = new SecurityTokenDescriptor()
             {
                 
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.Now.AddDays(7),
-                //Issuer = "http://localhost:52870",
                 SigningCredentials = creds
             };
             var tokenHandler = new JwtSecurityTokenHandler();

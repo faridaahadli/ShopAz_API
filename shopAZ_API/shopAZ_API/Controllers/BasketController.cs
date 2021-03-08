@@ -18,7 +18,7 @@ namespace shopAZ_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class BasketController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -27,16 +27,17 @@ namespace shopAZ_API.Controllers
         {
             _context = context;
             _mapper = mapper;
+           
         }
         // GET: api/<BasketController>
         [HttpGet]
         public IActionResult Get()
         {
-            //var userId = User.Claims.First(p => p.Type == "userId").Value;
-            //int id = Convert.ToInt32(userId);
+            int usrId = Convert.ToInt32(User.Claims
+                 .First(p => p.Type == "userId").Value);
             var baskets = _mapper
                .Map<IEnumerable<Basket>, IEnumerable<BasketViewModel>>(_context.Baskets?
-               .Where(p=>p.UserId==2)
+               .Where(p=>p.UserId==usrId)
                .Include(p => p.Product));         
             return Ok(baskets);
         }
@@ -45,6 +46,8 @@ namespace shopAZ_API.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(BasketViewModel model)
         {
+            int usrId = Convert.ToInt32(User.Claims
+                 .First(p => p.Type == "userId").Value);
             BasketValidator validator = new BasketValidator();
             var result = validator.Validate(model);
             if (!result.IsValid)
@@ -55,7 +58,7 @@ namespace shopAZ_API.Controllers
                 return NotFound();
             var basket = _mapper.Map<Basket>(model);
             //Use current user id
-            basket.UserId = 2;
+            basket.UserId = usrId;
              _context.Baskets.Add(basket);
             await _context.SaveChangesAsync();
             return Ok();
@@ -77,8 +80,6 @@ namespace shopAZ_API.Controllers
             //basket = _mapper.Map<Basket>(model);
             basket.ProductCount = model.ProductCount;
             basket.ProductId = model.ProductId;
-            //basket.UserId = 2;
-            //_context.Baskets.Update(basket);
             await _context.SaveChangesAsync();
             return Ok(model);
         }

@@ -75,7 +75,8 @@ namespace shopAZ_API
              }
          });
             });
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("this is my custom Secret key for authnetication"));
+            var key = new SymmetricSecurityKey(Encoding.
+                UTF8.GetBytes(Configuration.GetSection("JWT")["key"]));
 
             services.AddAuthentication(option =>
             {
@@ -112,15 +113,15 @@ namespace shopAZ_API
             StripeConfiguration.SetApiKey(Configuration.GetSection("Stripe")["SecretKey"]);
             app.UseHttpsRedirection();
             app.UseAuthentication();
-            app.UseAuthorization();
+            
             app.UseRouting();
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swagger Configuration V1");
             });
-            app.UseAuthorization();
 
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

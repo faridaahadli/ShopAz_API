@@ -1,5 +1,6 @@
 ﻿using Admin.ViewModel;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using shopAZ_API.DBModels;
@@ -16,6 +17,7 @@ namespace Admin.Controllers
 {
     [Route("api/admin/[controller]")]
     [ApiController]
+    [Authorize]
     public class OrdersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using shopAZ_API.DBModels;
@@ -12,8 +13,7 @@ using Stripe;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Product = shopAZ_API.DBModels.Product;
+using System.Threading.Tasks; 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -21,15 +21,17 @@ namespace shopAZ_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class OrderController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
-
+      
         public OrderController(ApplicationDbContext context,IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
+           
         }
 
         // POST api/<OrderController>
@@ -37,7 +39,8 @@ namespace shopAZ_API.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(CardData model)
         {
-           
+            int usrId = Convert.ToInt32(User.Claims
+                  .First(p => p.Type == "userId").Value);
             var rvdPrd=_context.Products.ToList();
             CardValidator validator = new CardValidator();
             var result = await validator.ValidateAsync(model);
@@ -45,7 +48,7 @@ namespace shopAZ_API.Controllers
                 return BadRequest(result.Errors);
             decimal? amount=0;
             var basket = _context.Baskets
-                 .Where(p => p.UserId == 2)
+                 .Where(p => p.UserId == usrId)
                  .Include(p => p.Product);
 
             //stripe uses cent we multiply 100  
@@ -70,7 +73,7 @@ namespace shopAZ_API.Controllers
             var order = new OrderViewModel();
             order.CreateDate = DateTime.Now;
             order.Status = (int)OrderStatus.Status.pending;
-            order.UserId = 2;
+            order.UserId = usrId;
             order.Products = _mapper.Map<IEnumerable<Basket>,IEnumerable<PrdOfOrderViewModel>>(basket);
             var dbOrder = _mapper.Map<ProdOrder>(order);
             foreach(var prd in dbOrder.Products)
@@ -98,6 +101,8 @@ namespace shopAZ_API.Controllers
         [Route("{id}/{count}")]
         public async Task<IActionResult> Post(int id,CardData model, int count = 1)
         {
+            int usrId = Convert.ToInt32(User.Claims
+                 .First(p => p.Type == "userId").Value);
             var rvdPrd = _context.Products.ToList();
             CardValidator validator = new CardValidator();
             var result = await validator.ValidateAsync(model);
@@ -127,7 +132,7 @@ namespace shopAZ_API.Controllers
             var order = new OrderViewModel();
             order.CreateDate = DateTime.Now;
             order.Status = (int)OrderStatus.Status.pending;
-            order.UserId = 2;
+            order.UserId = usrId;
             order.Products = list;
             var dbOrder = _mapper.Map<ProdOrder>(order);
             foreach (var prd in dbOrder.Products)

@@ -1,6 +1,7 @@
 ﻿using Admin.Validators;
 using Admin.ViewModel;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using shopAZ_API.DBModels;
@@ -15,6 +16,7 @@ namespace Admin.Controllers
 {
     [Route("api/admin/Products")]
     [ApiController]
+    [Authorize]
     public class ProductController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -55,7 +57,7 @@ namespace Admin.Controllers
             var result = validator.Validate(model);
             if (!result.IsValid)
             {
-                return BadRequest();
+                return BadRequest(result.Errors);
             }
             var product = _mapper.Map<Product>(model);
             await _context.Products.AddAsync(product);
